@@ -3,43 +3,77 @@
 For full examples, see `certbot.plugins`.
 
 """
+import requests
+import zope.component
 import zope.interface
 from acme import challenges
 
 from certbot import interfaces
+from certbot import reverter
 from certbot.plugins import common
 
 
 @zope.interface.implementer(interfaces.IAuthenticator)
 @zope.interface.provider(interfaces.IPluginFactory)
 class Authenticator(common.Plugin):
-    """Example Authenticator."""
+    _HTTP_INSTRUCTIONS = """\
+    Create a file containing just this data:
+
+    {validation}
+
+    And make it available on your web server at this URL:
+
+    {uri}
+    """
 
     description = "Example Authenticator plugin"
 
     def __init__(self, *args, **kwargs):
         super(Authenticator, self).__init__(*args, **kwargs)
+        self.reverter = reverter.Reverter(self.config)
+        self.reverter.recovery_routine()
+        self.env = dict() \
+            # type: Dict[achallenges.KeyAuthorizationAnnotatedChallenge, Dict[str, str]]
+        self.subsequent_dns_challenge = False
+        self.subsequent_any_challenge = False
 
     def prepare(self):
-        pass
+        print "### plugin preparation done ###"
 
     def more_info(self):  # pylint: disable=missing-docstring,no-self-use
         return (
-            'This plugin allows the user to customize setup for domain '
-            'validation challenges either through shell scripts provided by '
-            'the user or by performing the setup manually.')
+            'This plugin can be used to authenticate custom domain '
+        )
 
     def get_chall_pref(self, domain):
+        print "### get chal pref called"
         return [challenges.HTTP01]
 
     def perform(self, achalls):
         achall = achalls[0]
-        response, validation = achall.response_and_validation()
-        print validation
-        return []
+        validation = achall.validation(achall.account_key)
+        msg = self._HTTP_INSTRUCTIONS.format(achall=achall, encoded_token=achall.chall.encode('token'),
+                                             port=self.config.http01_port, uri=achall.chall.uri(achall.domain),
+                                             validation=validation)
+
+        display = zope.component.getUtility(interfaces.IDisplay)
+        self._create_challenge_content(validation, display)
+        display.notification(msg, pause=False, wrap=False, force_interactive=True)
+        self.subsequent_any_challenge = True
+
+        return [achall.response(achall.account_key)]
+
+    def _create_challenge_content(self, key, display):
+        URL = "http://maps.googleapis.com/maps/api/geocode/json"
+        location = "delhi technological university"
+        PARAMS = {'address': location}
+        r = requests.get(url=URL, params=PARAMS)
+        data = r.json()
+        display.notification(data, pause=False, wrap=False, force_interactive=True)
 
     def cleanup(self, achalls):
-        print 'clean up'
+        print "### cleaning challenges"
+        self.reverter.recovery_routine()
 
 
 # Implement all methods from IAuthenticator, remembering to add
