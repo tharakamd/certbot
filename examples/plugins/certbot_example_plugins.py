@@ -4,6 +4,7 @@ For full examples, see `certbot.plugins`.
 
 """
 import zope.interface
+from acme import challenges
 
 from certbot import interfaces
 from certbot.plugins import common
@@ -16,11 +17,25 @@ class Authenticator(common.Plugin):
 
     description = "Example Authenticator plugin"
 
-    def get_chall_pref(self, domain):  # pragma: no cover
-        # pylint: disable=missing-docstring,no-self-use,unused-argument
-        return []
+    def __init__(self, *args, **kwargs):
+        super(Authenticator, self).__init__(*args, **kwargs)
 
-    def perform(self, achalls):  # pylint: disable=missing-docstring
+    def prepare(self):
+        pass
+
+    def more_info(self):  # pylint: disable=missing-docstring,no-self-use
+        return (
+            'This plugin allows the user to customize setup for domain '
+            'validation challenges either through shell scripts provided by '
+            'the user or by performing the setup manually.')
+
+    def get_chall_pref(self, domain):
+        return [challenges.HTTP01]
+
+    def perform(self, achalls):
+        achall = achalls[0]
+        response, validation = achall.response_and_validation()
+        print validation
         return []
 
     def cleanup(self, achalls):
