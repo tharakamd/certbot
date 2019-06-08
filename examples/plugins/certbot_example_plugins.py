@@ -16,8 +16,19 @@ class Authenticator(common.Plugin):
 
     description = "Example Authenticator plugin"
 
-    # Implement all methods from IAuthenticator, remembering to add
-    # "self" as first argument, e.g. def prepare(self)...
+    def get_chall_pref(self, domain):  # pragma: no cover
+        # pylint: disable=missing-docstring,no-self-use,unused-argument
+        return []
+
+    def perform(self, achalls):  # pylint: disable=missing-docstring
+        return []
+
+    def cleanup(self, achalls):
+        print 'clean up'
+
+
+# Implement all methods from IAuthenticator, remembering to add
+# "self" as first argument, e.g. def prepare(self)...
 
 
 @zope.interface.implementer(interfaces.IInstaller)
