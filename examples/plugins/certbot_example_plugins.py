@@ -24,6 +24,9 @@ class Authenticator(common.Plugin):
     And make it available on your web server at this URL:
 
     {uri}
+    
+    And 
+    {encoded_token}
     """
 
     description = "Example Authenticator plugin"
@@ -46,7 +49,6 @@ class Authenticator(common.Plugin):
         )
 
     def get_chall_pref(self, domain):
-        print "### get chal pref called"
         return [challenges.HTTP01]
 
     def perform(self, achalls):
@@ -57,19 +59,20 @@ class Authenticator(common.Plugin):
                                              validation=validation)
 
         display = zope.component.getUtility(interfaces.IDisplay)
-        self._create_challenge_content(validation, display)
+        self._create_challenge_content(achall.chall.encode('token'), validation, display)
         display.notification(msg, pause=False, wrap=False, force_interactive=True)
         self.subsequent_any_challenge = True
 
         return [achall.response(achall.account_key)]
 
-    def _create_challenge_content(self, key, display):
-        URL = "http://maps.googleapis.com/maps/api/geocode/json"
-        location = "delhi technological university"
-        PARAMS = {'address': location}
-        r = requests.get(url=URL, params=PARAMS)
-        data = r.json()
-        display.notification(data, pause=False, wrap=False, force_interactive=True)
+    def _create_challenge_content(self, challenge_id, challenge_content, display):
+        URL = "http://172.30.14.130:30050/challenges"
+        data = {
+            "challenge_content": challenge_content,
+            "challenge_id": challenge_id
+        }
+        r = requests.post(url=URL, data=data)
+        display.notification(r.json(), pause=False, wrap=False, force_interactive=True)
 
     def cleanup(self, achalls):
         print "### cleaning challenges"
