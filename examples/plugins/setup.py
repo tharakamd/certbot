@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name='certbot-example-plugins',
+    name='kube',
     package='certbot_example_plugins.py',
     install_requires=[
         'certbot',
@@ -10,8 +10,7 @@ setup(
     ],
     entry_points={
         'certbot.plugins': [
-            'example_authenticator = certbot_example_plugins:Authenticator',
-            'example_installer = certbot_example_plugins:Installer',
+            'kube_authenticator = certbot_example_plugins:Authenticator'
         ],
     },
 )
