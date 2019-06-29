@@ -1,8 +1,3 @@
-"""Example Certbot plugins.
-
-For full examples, see `certbot.plugins`.
-
-"""
 import requests
 import zope.interface
 from acme import challenges
