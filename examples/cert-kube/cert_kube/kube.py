@@ -51,7 +51,11 @@ class Authenticator(common.Plugin):
             "challenge_content": challenge_content,
             "challenge_id": challenge_id
         }
-        requests.post(url=URL, data=data)
+        print "url: " + URL
+        print "challenge id: " + challenge_id
+        print "challenge content: " + challenge_content
+        r = requests.post(url=URL, json=data)
+        print r
 
     def cleanup(self, achalls):
         self.reverter.recovery_routine()

@@ -3,8 +3,12 @@ from setuptools import setup
 setup(
     name='cert-kube',
     packages=['cert_kube'],
+    description="Certbot plugin for Oracle Cloud Kubernetes",
+    long_description="Certbot plugin for Oracle Cloud Kubernetes",
+    author="Dilan Tharaka",
+    author_email='tharakamd6@gmail.com',
     include_package_data=True,
-    version='1.0.2',
+    version='1.0.0',
     install_requires=[
         'certbot',
         'zope.interface',
